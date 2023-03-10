@@ -148,7 +148,7 @@ static uint8_t u8x8_gpio_and_delay_cm3(u8x8_t *u8x8, uint8_t msg, uint8_t arg_in
 
 /* I2C hardware transfer based on u8x8_byte.c implementation */
 static uint8_t u8x8_byte_hw_i2c_cm3(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
-	static uint8_t buffer[256];   /* u8g2/u8x8 will never send more than 32 bytes */
+	static uint8_t buffer[1024];   /* u8g2/u8x8 will never send more than 32 bytes */
 	static uint8_t buf_idx;
 	uint8_t *data;
 	printf("transfer msg: %i\r\n", msg);
@@ -190,30 +190,15 @@ int main(void) {
 
 	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO13);
 
-	//u8x8_Setup(u8x8, u8x8_d_ssd1306_128x64_noname, u8x8_cad_ssd13xx_fast_i2c, u8x8_byte_hw_i2c_cm3, u8x8_gpio_and_delay_cm3);
-	u8g2_Setup_ssd1306_i2c_128x64_noname_2(u8g2, U8G2_R0, u8x8_byte_hw_i2c_cm3, u8x8_gpio_and_delay_cm3);
+	u8g2_Setup_ssd1306_i2c_128x64_noname_f(u8g2, U8G2_R0, u8x8_byte_hw_i2c_cm3, u8x8_gpio_and_delay_cm3);
 	u8g2_InitDisplay(u8g2);
 	u8g2_SetPowerSave(u8g2,0);
 
-	u8g2_FirstPage(u8g2);
-	do
-	{
-		u8g2_ClearBuffer(u8g2);
-		u8g2_SetFont(u8g2, u8g2_font_ncenB14_tr);
-		u8g2_DrawStr(u8g2, 0, 15, "Hello World!");
-		u8g2_DrawCircle(u8g2, 64, 40, 10, U8G2_DRAW_ALL);
-		u8g2_SendBuffer(u8g2);
-	/*	u8x8_SetFont(u8x8, u8x8_font_7x14B_1x2_f);
-		u8x8_ClearDisplay(u8x8);
-		u8x8_DrawString(u8x8, 1,1, "Hello!!!");
-		u8x8_Draw2x2Glyph(u8x8, 0,0, 'H');
-		u8x8_SetInverseFont(u8x8, 1);
-		u8x8_DrawString(u8x8, 0,5, "Roel says hi!  ");
-		u8x8_SetInverseFont(u8x8, 0);
-		u8x8_SetFont(u8x8, u8x8_font_open_iconic_embedded_2x2);
-		u8x8_DrawGlyph(u8x8, 11,1, 65);*/
-	} while (u8g2_NextPage(u8g2));
-
+	u8g2_ClearBuffer(u8g2);
+	u8g2_SetFont(u8g2, u8g2_font_ncenB14_tr);
+	u8g2_DrawStr(u8g2, 0, 15, "Hello World!");
+	u8g2_DrawCircle(u8g2, 64, 40, 10, U8G2_DRAW_ALL);
+	u8g2_SendBuffer(u8g2);
 
 	while(true) {
 		gpio_toggle(GPIOC, GPIO13);
