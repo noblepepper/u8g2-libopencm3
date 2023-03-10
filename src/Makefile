@@ -1,6 +1,6 @@
 
 # U8G2 graphics library, grab the U8X8 interfaces
-U8G2_SRCS = $(wildcard ../u8g2/csrc/u8x8*.c)
+U8G2_SRCS = $(wildcard ../u8g2/csrc/u8*.c)
 
 # Add to object files
 OBJS += $(U8G2_SRCS:%.c=%.o)
