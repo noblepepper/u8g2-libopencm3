@@ -12,63 +12,10 @@
 #include <stdlib.h>
 #include <u8x8.h>
 #include <u8g2.h>
+#include "setup.c"
+#include "util.c"
 
 int _write(int file, char *ptr, int len);
-
-static void clock_setup(void)
-{
-
-	/* Enable GPIOC clock. */
-	rcc_periph_clock_enable(RCC_GPIOA);
-	rcc_periph_clock_enable(RCC_GPIOB);
-	rcc_periph_clock_enable(RCC_GPIOC);
-
-	/* Enable clocks for GPIO port B (for GPIO_USART3_TX) and USART3. */
-	rcc_periph_clock_enable(RCC_USART1);
-	rcc_periph_clock_enable(RCC_USART2);
-	rcc_periph_clock_enable(RCC_USART3);
-}
-
-static void usart_setup(void)
-{
-	/* Setup GPIO pin GPIO_USART1_RE_TX on GPIO port B for transmit. */
-	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ,
-		      GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO_USART1_TX);
-
-	/* Setup UART parameters. */
-	usart_set_baudrate(USART1, 115200);
-	usart_set_databits(USART1, 8);
-	usart_set_stopbits(USART1, USART_STOPBITS_1);
-	usart_set_parity(USART1, USART_PARITY_NONE);
-	usart_set_flow_control(USART1, USART_FLOWCONTROL_NONE);
-	usart_set_mode(USART1, USART_MODE_TX);
-
-	/* Finally enable the USART. */
-	usart_enable(USART1);
-}
-
-static void gpio_setup(void)
-{
-	gpio_set(GPIOC, GPIO13);
-
-	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_50_MHZ,
-		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO13);
-}
-
-void systick_setup(void)
-{
-	/* 72MHz / 8 => 9000000 counts per second */
-	systick_set_clocksource(STK_CSR_CLKSOURCE_AHB_DIV8);
-
-	/* 9000000/900 = 10000 overflows per second - every 0.1ms one interrupt */
-	/* SysTick interrupt every N clock pulses: set reload to N-1 */
-	systick_set_reload(899);
-
-	systick_interrupt_enable();
-
-	/* Start counting. */
-	systick_counter_enable();
-}
 
 /* Initialize I2C1 interface */
 static void i2c_setup(void) {
@@ -95,40 +42,6 @@ static void i2c_setup(void) {
 
 	/* And go */
 	i2c_peripheral_enable(I2C1);
-}
-
-int _write(int file, char *ptr, int len)
-{
-	int i;
-
-	if (file == 1) {
-		for (i = 0; i < len; i++)
-			usart_send_blocking(USART1, ptr[i]);
-		return i;
-	}
-
-	errno = EIO;
-	return -1;
-}
-
-uint32_t DelayCounter;
-
-/* Wait a bit - the lazy version */
-//static void delay(int n) {
-//	for(int i = 0; i < n; i++)
-//		__asm__("nop");
-//}
-
-void sys_tick_handler(void)
-{
-	DelayCounter++;
-}
-
-static void delay(uint32_t _100us)
-{
-	DelayCounter = 0;
-	while (DelayCounter < _100us) __asm__("nop")
-		;
 }
 
 static uint8_t u8x8_gpio_and_delay_cm3(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
@@ -198,7 +111,6 @@ int main(void) {
 	u8g2_SetFont(display1, u8g2_font_ncenB14_tr);
 	u8g2_DrawStr(display1, 0, 15, "Hello #1!");
 	u8g2_DrawCircle(display1, 64, 40, 10, U8G2_DRAW_ALL);
-	// left 54 right 74 top 30 bottom 50
 	u8g2_SendBuffer(display1);
 
 	u8g2_Setup_ssd1306_i2c_128x64_noname_f(display2, U8G2_R0, u8x8_byte_hw_i2c_cm3, u8x8_gpio_and_delay_cm3);
