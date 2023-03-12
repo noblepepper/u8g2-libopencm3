@@ -1,3 +1,8 @@
+# Credit to Roel Jordans
+I used Roel's work https://github.com/rjordans/libopencm3-u8g2-test as a starting point. His repo worked great with u8x8 but I wanted to use u8g2 functions. This is the result
+
+Roel's original readme: still applicable
+
 # Materials
 
  - 1x "blue-pill" board (STM32F103C8)
@@ -5,6 +10,7 @@
  - STlink programmer
  - Some wires
  - (if needed) 2x 4.7k resistor for I2C pull-up
+
 
 # Wiring I2C
 
