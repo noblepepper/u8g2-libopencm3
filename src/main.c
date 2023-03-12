@@ -132,7 +132,6 @@ static void delay(uint32_t _100us)
 }
 
 static uint8_t u8x8_gpio_and_delay_cm3(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
-	printf("gpio msg: %i\r\n", msg);
 	switch(msg) {
 	case U8X8_MSG_GPIO_AND_DELAY_INIT:
 		i2c_setup();  /* Init I2C communication */
@@ -148,18 +147,17 @@ static uint8_t u8x8_gpio_and_delay_cm3(u8x8_t *u8x8, uint8_t msg, uint8_t arg_in
 
 /* I2C hardware transfer based on u8x8_byte.c implementation */
 static uint8_t u8x8_byte_hw_i2c_cm3(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
-	static uint8_t buffer[1024];   /* u8g2/u8x8 will never send more than 32 bytes */
+	static uint8_t buffer[32];   /* u8g2/u8x8 will never send more than 32 bytes */
 	static uint8_t buf_idx;
 	uint8_t *data;
-	printf("transfer msg: %i\r\n", msg);
-
-	switch(msg) {
+	uint8_t address = u8x8->i2c_address;
+		switch(msg) {
 	case U8X8_MSG_BYTE_SEND:
 		data = (uint8_t *)arg_ptr;
 		while(arg_int > 0) {
 			buffer[buf_idx++] = *data;
 			data++;
-arg_int--;
+			arg_int--;
 		}
 		break;
 	case U8X8_MSG_BYTE_INIT:
@@ -170,7 +168,7 @@ arg_int--;
 		buf_idx = 0;
 		break;
 	case U8X8_MSG_BYTE_END_TRANSFER:
-		i2c_transfer7(I2C1, 0x3C, buffer, buf_idx, NULL, 0);
+		i2c_transfer7(I2C1, address>>1, buffer, buf_idx, NULL, 0);
 		break;
 	default:
 		return 0;
@@ -185,20 +183,35 @@ int main(void) {
 	gpio_setup();
 	usart_setup();
 	printf("hello\r\n");
-	u8x8_t u8x8_i, *u8x8 = &u8x8_i;
-	u8g2_t u8g2_i, *u8g2 = &u8g2_i;
+	u8g2_t u8g2_i1, *display1 = &u8g2_i1;
+	u8g2_t u8g2_i2, *display2 = &u8g2_i2;
 
 	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO13);
 
-	u8g2_Setup_ssd1306_i2c_128x64_noname_f(u8g2, U8G2_R0, u8x8_byte_hw_i2c_cm3, u8x8_gpio_and_delay_cm3);
-	u8g2_InitDisplay(u8g2);
-	u8g2_SetPowerSave(u8g2,0);
+	u8g2_Setup_ssd1306_i2c_128x64_noname_f(display1, U8G2_R0, u8x8_byte_hw_i2c_cm3, u8x8_gpio_and_delay_cm3);
+	u8g2_SetI2CAddress(display1, 0x3D<<1);
+	u8g2_InitDisplay(display1);
+	u8g2_SetPowerSave(display1, 0);
 
-	u8g2_ClearBuffer(u8g2);
-	u8g2_SetFont(u8g2, u8g2_font_ncenB14_tr);
-	u8g2_DrawStr(u8g2, 0, 15, "Hello World!");
-	u8g2_DrawCircle(u8g2, 64, 40, 10, U8G2_DRAW_ALL);
-	u8g2_SendBuffer(u8g2);
+	u8g2_ClearBuffer(display1);
+	u8g2_SendBuffer(display1);
+	u8g2_SetFont(display1, u8g2_font_ncenB14_tr);
+	u8g2_DrawStr(display1, 0, 15, "Hello #1!");
+	u8g2_DrawCircle(display1, 64, 40, 10, U8G2_DRAW_ALL);
+	// left 54 right 74 top 30 bottom 50
+	u8g2_SendBuffer(display1);
+
+	u8g2_Setup_ssd1306_i2c_128x64_noname_f(display2, U8G2_R0, u8x8_byte_hw_i2c_cm3, u8x8_gpio_and_delay_cm3);
+	u8g2_SetI2CAddress(display2, 0x3C<<1);
+	u8g2_InitDisplay(display2);
+	u8g2_SetPowerSave(display2, 0);
+
+	u8g2_ClearBuffer(display2);
+	u8g2_SendBuffer(display2);
+	u8g2_SetFont(display2, u8g2_font_ncenB14_tr);
+	u8g2_DrawStr(display2, 0, 15, "Hello #2!");
+	u8g2_DrawFrame(display2, 54, 30, 20, 20);
+	u8g2_SendBuffer(display2);
 
 	while(true) {
 		gpio_toggle(GPIOC, GPIO13);
