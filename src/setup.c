@@ -11,6 +11,13 @@ static void clock_setup(void)
 	rcc_periph_clock_enable(RCC_USART1);
 	rcc_periph_clock_enable(RCC_USART2);
 	rcc_periph_clock_enable(RCC_USART3);
+
+	/* Enable AFIO, DMA and I2C1 clocks */
+        rcc_periph_clock_enable(RCC_AFIO);
+        rcc_periph_clock_enable(RCC_DMA1);
+        rcc_periph_clock_enable(RCC_I2C1);
+
+
 }
 
 static void usart_setup(void)
