@@ -1,4 +1,4 @@
-
+int _write(int file, char *ptr, int len);
 
 int _write(int file, char *ptr, int len)
 {
