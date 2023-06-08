@@ -21,10 +21,17 @@ void sys_tick_handler(void)
 	DelayCounter++;
 }
 
-static void delay(uint32_t _100us)
+static void delay_ms(uint32_t ms)
 {
 	DelayCounter = 0;
-	while (DelayCounter < _100us) __asm__("nop")
+	while (DelayCounter < ms * 1000) __asm__("nop")
+		;
+}
+
+static void delay_us(uint32_t us)
+{
+	DelayCounter = 0;
+	while (DelayCounter < us) __asm__("nop")
 		;
 }
 
